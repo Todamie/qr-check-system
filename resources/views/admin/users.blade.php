@@ -1,11 +1,19 @@
 <x-admin>
     <h3 class="admin__section__title text-[9.9px]">Управление пользователями</h3>
-    <form action="{{ url('/admin/users') }}" method="GET">
-        <div class="search">
-            <input type="search" name="query" placeholder="Поиск пользователей..." value="{{ request('query') }}">
-            <button type="submit" class="btn btn-primary">Найти</button>
-        </div>
-    </form>
+
+    <x-form-search target='/admin/users/' sortBy="{{ $sortBy }}"
+        sortOrder="{{ $sortOrder }}">
+        <input type="search" name="query" placeholder="Поиск по всем полям" value="{{ request('query') }}">
+        <input type="search" name="searchLastName" placeholder="Фамилия"
+            value="{{ request('searchLastName') }}">
+        <input type="search" name="searchFirstName" placeholder="Имя"
+            value="{{ request('searchFirstName') }}">
+        <input type="search" name="searchEmail" placeholder="Email" value="{{ request('searchEmail') }}">
+        <input type="search" name="searchGroup" placeholder="Группа" value="{{ request('searchGroup') }}">
+        <input type="search" name="searchDepartment" placeholder="Подразделение"
+            value="{{ request('searchDepartment') }}">
+    </x-form-search>
+
     <p class="user__counter">Всего пользователей в системе: <span style="font-weight: 600;">{{ $userCount }}</span>
     </p>
     <br>
@@ -13,16 +21,26 @@
         <table class="table users__table">
             <thead>
                 <tr>
-                    <th><x-sortBy name="last_name" sortBy="last_name" sortOrder="{{ $sortOrder }}" page="{{ $page }}">Фамилия</x-sortBy> /
-                        <x-sortBy name="first_name" sortBy="first_name" sortOrder="{{ $sortOrder }}" page="{{ $page }}">Имя</x-sortBy></th>
-                    <!-- <th>Фамилия</th> -->
-                    <th><x-sortBy name="email" sortBy="email" sortOrder="{{ $sortOrder }}" page="{{ $page }}">Email</x-sortBy></th>
-                    <th><x-sortBy name="group" sortBy="group" sortOrder="{{ $sortOrder }}" page="{{ $page }}">Группа / Отдел</x-sortBy></th>
-                    <th><x-sortBy name="department" sortBy="department" sortOrder="{{ $sortOrder }}" page="{{ $page }}">Подразделение</x-sortBy></th>
-                    <th><x-sortBy name="type" sortBy="type" sortOrder="{{ $sortOrder }}" page="{{ $page }}">Аутентификация</x-sortBy></th>
-                    <th><x-sortBy name="employee" sortBy="employee" sortOrder="{{ $sortOrder }}" page="{{ $page }}">Роль</x-sortBy></th>
-                    <th><x-sortBy name="admin" sortBy="admin" sortOrder="{{ $sortOrder }}" page="{{ $page }}">Админ</x-sortBy></th>
-                    <th><x-sortBy name="last_login" sortBy="last_login" sortOrder="{{ $sortOrder }}" page="{{ $page }}">Последний вход</x-sortBy></th>
+                    <th><x-sortBy target='/admin/users/' name='last_name' sortBy='last_name'
+                            sortOrder="{{ $sortOrder }}" page="{{ $page }}" :params="$params">Фамилия</x-sortBy> /
+                        <x-sortBy target='/admin/users/' name='first_name' sortBy='first_name'
+                            sortOrder="{{ $sortOrder }}" page="{{ $page }}" :params="$params">Имя</x-sortBy>
+                    </th>
+
+                    <th><x-sortBy target='/admin/users/' name="email" sortBy="email" sortOrder="{{ $sortOrder }}"
+                            page="{{ $page }}" :params="$params">Email</x-sortBy></th>
+                    <th><x-sortBy target='/admin/users/' name="group" sortBy="group" sortOrder="{{ $sortOrder }}"
+                            page="{{ $page }}" :params="$params">Группа / Отдел</x-sortBy></th>
+                    <th><x-sortBy target='/admin/users/' name="department" sortBy="department"
+                            sortOrder="{{ $sortOrder }}" page="{{ $page }}" :params="$params">Подразделение</x-sortBy></th>
+                    <th><x-sortBy target='/admin/users/' name="type" sortBy="type" sortOrder="{{ $sortOrder }}"
+                            page="{{ $page }}" :params="$params">Аутентификация</x-sortBy></th>
+                    <th><x-sortBy target='/admin/users/' name="employee" sortBy="employee"
+                            sortOrder="{{ $sortOrder }}" page="{{ $page }}" :params="$params">Роль</x-sortBy></th>
+                    <th><x-sortBy target='/admin/users/' name="admin" sortBy="admin" sortOrder="{{ $sortOrder }}"
+                            page="{{ $page }}" :params="$params">Админ</x-sortBy></th>
+                    <th><x-sortBy target='/admin/users/' name="last_login" sortBy="last_login"
+                            sortOrder="{{ $sortOrder }}" page="{{ $page }}" :params="$params">Последний вход</x-sortBy></th>
 
                 </tr>
             </thead>
@@ -31,15 +49,15 @@
 
                 @foreach ($users as $user)
                     <tr>
-                        <th>{{ $user->last_name . ' ' . $user->first_name}}</th>
+                        <th>{{ $user->last_name . ' ' . $user->first_name }}</th>
                         <th>{{ $user->email }}</a></th>
                         <th>{{ $user->group }}</th>
                         <th>{{ $user->department }}</th>
-                        
+
                         @if ($user->type == true)
-                        <th>SSO</th>
+                            <th>SSO</th>
                         @else
-                        <th>Локальная</th>
+                            <th>Локальная</th>
                         @endif
 
                         @if ($user->student)
@@ -70,11 +88,15 @@
             </tbody>
         </table>
 
-        
+
     </div>
 
-    <div style="margin-top: 10px;">
-        {{ $users->links() }}
+    <div class="desktop__paginate" style="margin-top: 10px;">
+        {{ $users1->paginate(20)->onEachSide(1) }}
     </div>
-    
+
+    <div class="mobile__paginate" style="margin-top: 10px;">
+        {{ $users1->simplePaginate() }}
+    </div>
+
 </x-admin>

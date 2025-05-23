@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
@@ -55,32 +56,92 @@ class UserController extends Controller
     public function index(Request $request)
     {
         // Получаем значение из строки запроса
-        $query = $request->input('query');
-        $sortBy = $request->input('sortBy') ?? 'last_name';
-        $sortOrder = $request->input('sortOrder') ?? 'asc';
-        $page = $request->input('page') ?? 1;
+        $query = trim($request->input('query')) ?? '';
+        $sortBy = trim($request->input('sortBy'));
+        if (empty($sortBy)) {
+            $sortBy = 'last_name';
+        }
+        $sortOrder = trim($request->input('sortOrder'));
+        if (empty($sortOrder)) {
+            $sortOrder = 'asc';
+        }
+        $page = trim($request->input('page')) ?? 1;
+        $searchLastName = trim($request->input('searchLastName')) ?? '';
+        $searchFirstName = trim($request->input('searchFirstName')) ?? '';
+        $searchEmail = trim($request->input('searchEmail')) ?? '';
+        $searchGroup = trim($request->input('searchGroup')) ?? '';
+        $searchDepartment = trim($request->input('searchDepartment')) ?? '';
 
-        // Если есть запрос, фильтруем пользователей
-        $users = User::when($query, function ($q) use ($query) {
-            return $q->where('first_name', 'LIKE', "%{$query}%")
-                ->orWhere('last_name', 'LIKE', "%{$query}%")
-                ->orWhere('email', 'LIKE', "%{$query}%")
-                ->orWhere('group', 'LIKE', "%{$query}%");
-        })
-            ->orderBy($sortBy, $sortOrder)
-            ->paginate(20);
+        $searchConditions = [];
+        if (!empty($searchLastName)) {
+            $searchConditions[] = ['last_name', 'LIKE', "%{$searchLastName}%"];
+        }
+        if (!empty($searchFirstName)) {
+            $searchConditions[] = ['first_name', 'LIKE', "%{$searchFirstName}%"];
+        }
+        if (!empty($searchEmail)) {
+            $searchConditions[] = ['email', 'LIKE', "%{$searchEmail}%"];
+        }
+        if (!empty($searchGroup)) {
+            $searchConditions[] = ['group', 'LIKE', "%{$searchGroup}%"];
+        }
+        if (!empty($searchDepartment)) {
+            $searchConditions[] = ['department', 'LIKE', "%{$searchDepartment}%"];
+        }
+
+        $searchWithParams = User::query();
+
+        if (count($searchConditions) > 0) {
+            foreach ($searchConditions as $condition) {
+                $searchWithParams->where($condition[0], $condition[1], $condition[2]);
+            }
+        }
+
+        $searchWithAll = User::query();
+
+        if (!empty($query)) {
+            $searchWithAll->where(function ($q) use ($query) {
+                $q->where('last_name', 'LIKE', "%{$query}%")
+                    ->orWhere('first_name', 'LIKE', "%{$query}%")
+                    ->orWhere('email', 'LIKE', "%{$query}%")
+                    ->orWhere('group', 'LIKE', "%{$query}%")
+                    ->orWhere('department', 'LIKE', "%{$query}%");
+            });
+        }
+
+        foreach ($searchConditions as $condition) {
+            $searchWithAll->where($condition[0], $condition[1], $condition[2]);
+        }
+
+        $users1 = $searchWithAll->orderBy($sortBy, $sortOrder);
+        $users = $users1->paginate();
 
         $userCount = User::count();
+
+        $params = [
+            'query' => $query,
+            'searchLastName' => $searchLastName,
+            'searchFirstName' => $searchFirstName,
+            'searchEmail' => $searchEmail,
+            'searchGroup' => $searchGroup,
+            'searchDepartment' => $searchDepartment,
+            'sortBy' => $sortBy,
+            'sortOrder' => $sortOrder,
+            'page' => $page
+        ];
 
         return view('admin.users', [
             'users' => $users,
             'userCount' => $userCount,
-            'page' => $page,
             'sortBy' => $sortBy,
-            'sortOrder' => $sortOrder
+            'sortOrder' => $sortOrder,
+            'page' => $page,
+            'params' => $params,
+            'users1' => $users1
         ]);
     }
 
+    // Обновление данных пользователя
     public function update($id, Request $request)
     {
         $user = User::findOrFail($id);

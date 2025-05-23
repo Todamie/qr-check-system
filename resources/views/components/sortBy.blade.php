@@ -1,7 +1,14 @@
-@props(['sortBy', 'sortOrder', 'page', 'name'])
+@props(['sortBy', 'sortOrder', 'page', 'target', 'name', 'params' => []])
 
-<a
-    href="{{ url('/admin/users/?sortBy=' . $sortBy . '&sortOrder=' . ($sortOrder == 'asc' ? 'desc' : 'asc')) . '&page=' . $page }}">
+@php
+    $queryString = http_build_query(array_merge($params, [
+        'sortBy' => $sortBy,
+        'sortOrder' => $sortOrder == 'asc' ? 'desc' : 'asc',
+        'page' => $page,
+    ]));
+@endphp
+
+<a href="{{ url($target . '?' . $queryString) }}">
 
     <?php
     $arrow = '';

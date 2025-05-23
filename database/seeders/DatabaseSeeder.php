@@ -24,5 +24,25 @@ class DatabaseSeeder extends Seeder
             'admin' => true,
             'password'=> '1234567890'
         ]);
+
+        User::create([
+            'first_name' => 'Student',
+            'last_name'=> 'TYUIU',
+            'email' => 'student@std.tyuiu.ru',
+            'employee' => false,
+            'student' => true,
+            'admin' => false,
+            'password'=> '1234567890'
+        ]);
+
+        User::create([
+            'first_name' => 'Employee',
+            'last_name'=> 'TYUIU',
+            'email' => 'employee@tyuiu.ru',
+            'employee' => true,
+            'student' => false,
+            'admin' => false,
+            'password'=> '1234567890'
+        ]);
     }
 }

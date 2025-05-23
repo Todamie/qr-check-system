@@ -1,5 +1,10 @@
 -!/bin/bash
 
+echo "Обновляем Composer"
+echo "------------------------------------"
+sleep 1s
+composer update
+
 echo "Установка зависимостей Composer"
 echo "------------------------------------"
 sleep 1s
