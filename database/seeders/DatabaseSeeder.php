@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
         User::create([
             'first_name' => 'Admin',
             'last_name'=> 'TYUIU',
-            'email' => 'admin@tyuiu.ru',
+            'email' => 'admin',
             'employee' => true,
             'student' => true,
             'admin' => true,
@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
         User::create([
             'first_name' => 'Student',
             'last_name'=> 'TYUIU',
-            'email' => 'student@std.tyuiu.ru',
+            'email' => 'student',
             'employee' => false,
             'student' => true,
             'admin' => false,
@@ -38,7 +38,7 @@ class DatabaseSeeder extends Seeder
         User::create([
             'first_name' => 'Employee',
             'last_name'=> 'TYUIU',
-            'email' => 'employee@tyuiu.ru',
+            'email' => 'employee',
             'employee' => true,
             'student' => false,
             'admin' => false,

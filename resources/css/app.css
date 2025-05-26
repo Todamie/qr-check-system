@@ -435,12 +435,14 @@ footer {
 
 .admin__section {
     width: 100%;
+    overflow-x: hidden;
 }
 
 .admin__section__content {
     width: 100%;
     overflow-x: scroll;
 }
+
 
 #menuBtn {
     width: 20px;
@@ -526,6 +528,10 @@ footer {
     text-align: left;
     box-sizing: border-box;
     min-width: 200px;
+}
+
+.search input::placeholder {
+    overflow: visible;
 }
 
 .search input:focus {

@@ -78,69 +78,303 @@ class LessonController extends Controller
     public function index(Request $request)
     {
         // Получаем значение из строки запроса
-        $query = $request->input('query');
+        $query = trim($request->input('query')) ?? '';
+        $sortBy = trim($request->input('sortBy'));
+        if (empty($sortBy)) {
+            $sortBy = 'created_at';
+        }
 
-        // Если есть запрос, фильтруем пользователей
-        $lessons = Lesson::when($query, function ($q) use ($query) {
-            return $q->whereHas('employee', function ($q) use ($query) {
-                $q->where('last_name', 'LIKE', "%{$query}%")
-                    ->orWhere('first_name', 'LIKE', "%{$query}%")
-                    ->orWhere('email', 'LIKE', "%{$query}%");
-            })
-                ->orWhereHas('student', function ($q) use ($query) {
-                    $q->where('last_name', 'LIKE', "%{$query}%")
+        $sortOrder = trim($request->input('sortOrder'));
+        if (empty($sortOrder)) {
+            $sortOrder = 'desc';
+        }
+        $page = trim($request->input('page')) ?? 1;
+        $searchStudentLastName = trim($request->input('searchStudentLastName')) ?? '';
+        $searchStudentFirstName = trim($request->input('searchStudentFirstName')) ?? '';
+        $searchEmployeeLastName = trim($request->input('searchEmployeeLastName')) ?? '';
+        $searchEmployeeFirstName = trim($request->input('searchEmployeeFirstName')) ?? '';
+        $searchLessonName = trim($request->input('searchLessonName')) ?? '';
+        $searchGroup = trim($request->input('searchGroup')) ?? '';
+        $searchPlace = trim($request->input('searchPlace')) ?? '';
+
+        $searchWithParams = Lesson::with(['employee', 'student']);
+
+        if (!empty($searchStudentLastName)) {
+            $searchWithParams->whereHas('student', function ($q) use ($searchStudentLastName) {
+                $q->where('last_name', 'LIKE', "%{$searchStudentLastName}%");
+            });
+        }
+        if (!empty($searchStudentFirstName)) {
+            $searchWithParams->whereHas('student', function ($q) use ($searchStudentFirstName) {
+                $q->where('first_name', 'LIKE', "%{$searchStudentFirstName}%");
+            });
+        }
+        if (!empty($searchEmployeeLastName)) {
+            $searchWithParams->whereHas('employee', function ($q) use ($searchEmployeeLastName) {
+                $q->where('last_name', 'LIKE', "%{$searchEmployeeLastName}%");
+            });
+        }
+        if (!empty($searchEmployeeFirstName)) {
+            $searchWithParams->whereHas('employee', function ($q) use ($searchEmployeeFirstName) {
+                $q->where('first_name', 'LIKE', "%{$searchEmployeeFirstName}%");
+            });
+        }
+        if (!empty($searchGroup)) {
+            $searchWithParams->where(function ($q) use ($searchGroup) {
+                $q->whereHas('student', function ($q2) use ($searchGroup) {
+                    $q2->where('group', 'LIKE', "%{$searchGroup}%");
+                })->orWhereHas('employee', function ($q2) use ($searchGroup) {
+                    $q2->where('group', 'LIKE', "%{$searchGroup}%");
+                });
+            });
+        }
+        if (!empty($searchLessonName)) {
+            $searchWithParams->where('lesson_name', 'LIKE', "%{$searchLessonName}%");
+        }
+        if (!empty($searchPlace)) {
+            $searchWithParams->where('classroom', 'LIKE', "%{$searchPlace}%");
+        }
+
+        if (!empty($query)) {
+            $searchWithParams->where(function ($q) use ($query) {
+                $q->whereHas('employee', function ($q2) use ($query) {
+                    $q2->where('last_name', 'LIKE', "%{$query}%")
                         ->orWhere('first_name', 'LIKE', "%{$query}%")
-                        ->orWhere('email', 'LIKE', "%{$query}%");
+                        ->orWhere('group', 'LIKE', "%{$query}%");
                 })
-                ->orWhere('lesson_name', 'LIKE', "%{$query}%")
-                ->orWhere('classroom', 'LIKE', "%{$query}%");
-        })->paginate(20);
+                    ->orWhereHas('student', function ($q2) use ($query) {
+                        $q2->where('last_name', 'LIKE', "%{$query}%")
+                            ->orWhere('first_name', 'LIKE', "%{$query}%")
+                            ->orWhere('group', 'LIKE', "%{$query}%");
+                    })
+                    ->orWhere('lesson_name', 'LIKE', "%{$query}%")
+                    ->orWhere('classroom', 'LIKE', "%{$query}%");
+            });
+        }
 
-        return view('admin.attendance', compact('lessons'));
+        if ($sortBy === 'employee_id') {
+            $lessons1 = $searchWithParams->join('users as u1', 'lessons.employee_id', '=', 'u1.id')
+                ->orderBy('u1.last_name', $sortOrder)
+                ->select('lessons.*');
+        } elseif ($sortBy === 'student_id') {
+            $lessons1 = $searchWithParams->join('users as u2', 'lessons.student_id', '=', 'u2.id')
+                ->orderBy('u2.last_name', $sortOrder)
+                ->select('lessons.*');
+        } elseif ($sortBy === 'group') {
+            $lessons1 = $searchWithParams->join('users as u3', 'lessons.student_id', '=', 'u3.id')
+                ->orderBy('u3.group', $sortOrder)
+                ->select('lessons.*');
+        } else {
+            $lessons1 = $searchWithParams->orderBy($sortBy, $sortOrder);
+        }
+
+        $lessons = $lessons1->paginate();
+
+        $lessonCount = Lesson::count();
+
+        $params = [
+            'query' => $query,
+            'searchStudentLastName' => $searchStudentLastName,
+            'searchStudentFirstName' => $searchStudentFirstName,
+            'searchEmployeeLastName' => $searchEmployeeLastName,
+            'searchEmployeeFirstName' => $searchEmployeeFirstName,
+            'searchLessonName' => $searchLessonName,
+            'searchGroup' => $searchGroup,
+            'searchPlace' => $searchPlace,
+            'sortBy' => $sortBy,
+            'sortOrder' => $sortOrder,
+            'page' => $page
+        ];
+
+        return view('admin.attendance', [
+            'lessons' => $lessons,
+            'lessonCount' => $lessonCount,
+            'sortBy' => $sortBy,
+            'sortOrder' => $sortOrder,
+            'page' => $page,
+            'params' => $params,
+            'lessons1' => $lessons1
+        ]);
     }
 
     public function index_employee(Request $request)
     {
         // Получаем значение из строки запроса
-        $query = $request->input('query');
+        $query = trim($request->input('query')) ?? '';
+        $sortBy = trim($request->input('sortBy'));
+        if (empty($sortBy)) {
+            $sortBy = 'created_at';
+        }
 
-        $user = Auth::user()->id;
+        $sortOrder = trim($request->input('sortOrder'));
+        if (empty($sortOrder)) {
+            $sortOrder = 'desc';
+        }
+        $page = trim($request->input('page')) ?? 1;
+        $searchStudentLastName = trim($request->input('searchStudentLastName')) ?? '';
+        $searchStudentFirstName = trim($request->input('searchStudentFirstName')) ?? '';
+        $searchLessonName = trim($request->input('searchLessonName')) ?? '';
+        $searchGroup = trim($request->input('searchGroup')) ?? '';
+        $searchPlace = trim($request->input('searchPlace')) ?? '';
 
-        // Если есть запрос, фильтруем пользователей
-        $lessons = Lesson::where('employee_id', $user)
-            ->when($query, function ($q) use ($query) {
-                return $q->WhereHas('student', function ($q) use ($query) {
-                    $q->where('last_name', 'LIKE', "%{$query}%")
-                        ->orWhere('first_name', 'LIKE', "%{$query}%")
-                        ->orWhere('email', 'LIKE', "%{$query}%");
-                })
-                    ->orWhere('lesson_name', 'LIKE', "%{$query}%")
-                    ->orWhere('classroom', 'LIKE', "%{$query}%");
-            })->paginate(20);
+        $searchWithParams = Lesson::with(['employee', 'student']);
 
-        return view('user.attendance', compact('lessons'));
+        if (!empty($searchStudentLastName)) {
+            $searchWithParams->whereHas('student', function ($q) use ($searchStudentLastName) {
+                $q->where('last_name', 'LIKE', "%{$searchStudentLastName}%");
+            });
+        }
+        if (!empty($searchStudentFirstName)) {
+            $searchWithParams->whereHas('student', function ($q) use ($searchStudentFirstName) {
+                $q->where('first_name', 'LIKE', "%{$searchStudentFirstName}%");
+            });
+        }
+        if (!empty($searchGroup)) {
+            $searchWithParams->whereHas('student', function ($q) use ($searchGroup) {
+                $q->where('group', 'LIKE', "%{$searchGroup}%");
+            });
+        }
+        if (!empty($searchLessonName)) {
+            $searchWithParams->where('lesson_name', 'LIKE', "%{$searchLessonName}%");
+        }
+        if (!empty($searchPlace)) {
+            $searchWithParams->where('classroom', 'LIKE', "%{$searchPlace}%");
+        }
+
+        if (!empty($query)) {
+            $searchWithParams->whereHas('student', function ($q) use ($query) {
+                $q->where('last_name', 'LIKE', "%{$query}%")
+                    ->orWhere('first_name', 'LIKE', "%{$query}%")
+                    ->orWhere('group', 'LIKE', "%{$query}%");
+            })
+                ->orWhere('lesson_name', 'LIKE', "%{$query}%")
+                ->orWhere('classroom', 'LIKE', "%{$query}%");
+        }
+
+        if ($sortBy === 'student_id') {
+            $lessons1 = $searchWithParams->join('users as u1', 'lessons.student_id', '=', 'u1.id')
+                ->where('employee_id', Auth::user()->id)
+                ->orderBy('u1.last_name', $sortOrder)
+                ->select('lessons.*');
+        } elseif ($sortBy === 'group') {
+            $lessons1 = $searchWithParams->join('users as u2', 'lessons.student_id', '=', 'u2.id')
+                ->where('employee_id', Auth::user()->id)
+                ->orderBy('u2.group', $sortOrder)
+                ->select('lessons.*');
+        } else {
+            $lessons1 = $searchWithParams->where('employee_id', Auth::user()->id)
+                ->orderBy($sortBy, $sortOrder);
+        }
+
+        $lessons = $lessons1->paginate();
+
+        $lessonCount = Lesson::count();
+
+        $params = [
+            'query' => $query,
+            'searchStudentLastName' => $searchStudentLastName,
+            'searchStudentFirstName' => $searchStudentFirstName,
+            'searchLessonName' => $searchLessonName,
+            'searchGroup' => $searchGroup,
+            'searchPlace' => $searchPlace,
+            'sortBy' => $sortBy,
+            'sortOrder' => $sortOrder,
+            'page' => $page
+        ];
+
+        return view('user.attendance-employee', [
+            'lessons' => $lessons,
+            'lessonCount' => $lessonCount,
+            'sortBy' => $sortBy,
+            'sortOrder' => $sortOrder,
+            'page' => $page,
+            'params' => $params,
+            'lessons1' => $lessons1
+        ]);
     }
 
     public function index_student(Request $request)
     {
         // Получаем значение из строки запроса
-        $query = $request->input('query');
+        $query = trim($request->input('query')) ?? '';
+        $sortBy = trim($request->input('sortBy'));
+        if (empty($sortBy)) {
+            $sortBy = 'created_at';
+        }
 
-        $user = Auth::user()->id;
+        $sortOrder = trim($request->input('sortOrder'));
+        if (empty($sortOrder)) {
+            $sortOrder = 'desc';
+        }
+        $page = trim($request->input('page')) ?? 1;
+        $searchEmployeeLastName = trim($request->input('searchEmployeeLastName')) ?? '';
+        $searchEmployeeFirstName = trim($request->input('searchEmployeeFirstName')) ?? '';
+        $searchLessonName = trim($request->input('searchLessonName')) ?? '';
+        $searchPlace = trim($request->input('searchPlace')) ?? '';
 
-        // Если есть запрос, фильтруем пользователей
-        $lessons = Lesson::where('student_id', $user)
-            ->when($query, function ($q) use ($query) {
-                return $q->WhereHas('employee', function ($q) use ($query) {
-                    $q->where('last_name', 'LIKE', "%{$query}%")
-                        ->orWhere('first_name', 'LIKE', "%{$query}%")
-                        ->orWhere('email', 'LIKE', "%{$query}%");
-                })
-                    ->orWhere('lesson_name', 'LIKE', "%{$query}%")
-                    ->orWhere('classroom', 'LIKE', "%{$query}%");
-            })->paginate(20);
+        $searchWithParams = Lesson::with(['employee', 'student']);
 
-        return view('user.attendance', compact('lessons'));
+        if (!empty($searchEmployeeLastName)) {
+            $searchWithParams->whereHas('employee', function ($q) use ($searchEmployeeLastName) {
+                $q->where('last_name', 'LIKE', "%{$searchEmployeeLastName}%");
+            });
+        }
+        if (!empty($searchEmployeeFirstName)) {
+            $searchWithParams->whereHas('employee', function ($q) use ($searchEmployeeFirstName) {
+                $q->where('first_name', 'LIKE', "%{$searchEmployeeFirstName}%");
+            });
+        }
+        if (!empty($searchLessonName)) {
+            $searchWithParams->where('lesson_name', 'LIKE', "%{$searchLessonName}%");
+        }
+        if (!empty($searchPlace)) {
+            $searchWithParams->where('classroom', 'LIKE', "%{$searchPlace}%");
+        }
+
+        if (!empty($query)) {
+            $searchWithParams->whereHas('employee', function ($q) use ($query) {
+                $q->where('last_name', 'LIKE', "%{$query}%")
+                    ->orWhere('first_name', 'LIKE', "%{$query}%")
+                    ->orWhere('group', 'LIKE', "%{$query}%");
+            })
+                ->orWhere('lesson_name', 'LIKE', "%{$query}%")
+                ->orWhere('classroom', 'LIKE', "%{$query}%");
+        }
+
+        if ($sortBy === 'employee_id') {
+            $lessons1 = $searchWithParams->join('users as u1', 'lessons.employee_id', '=', 'u1.id')
+                ->where('student_id', Auth::user()->id)
+                ->orderBy('u1.last_name', $sortOrder)
+                ->select('lessons.*');
+        } else {
+            $lessons1 = $searchWithParams->where('student_id', Auth::user()->id)
+                ->orderBy($sortBy, $sortOrder);
+        }
+
+        $lessons = $lessons1->paginate();
+
+        $lessonCount = Lesson::count();
+
+        $params = [
+            'query' => $query,
+            'searchEmployeeLastName' => $searchEmployeeLastName,
+            'searchEmployeeFirstName' => $searchEmployeeFirstName,
+            'searchLessonName' => $searchLessonName,
+            'searchPlace' => $searchPlace,
+            'sortBy' => $sortBy,
+            'sortOrder' => $sortOrder,
+            'page' => $page
+        ];
+
+        return view('user.attendance-student', [
+            'lessons' => $lessons,
+            'lessonCount' => $lessonCount,
+            'sortBy' => $sortBy,
+            'sortOrder' => $sortOrder,
+            'page' => $page,
+            'params' => $params,
+            'lessons1' => $lessons1
+        ]);
     }
 
     public function current_lesson($group)
