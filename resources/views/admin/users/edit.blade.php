@@ -66,7 +66,7 @@
             </ul>
             <div class="btns">
                 <button type="submit" class="btn btn-primary">Сохранить</button>
-                <a href="{{ url('/admin/users') }}" class="btn btn-secondary">Назад</a>
+                <a href="{{ url('/admin/users') }}" class="btn btn-secondary" style="display: flex; align-items: center;">Назад</a>
 
                 {{-- Чтобы пользователь не мог удалить сам себя --}}
                 @auth

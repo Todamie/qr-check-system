@@ -1,4 +1,4 @@
-@props(['lessons', 'sortBy', 'sortOrder', 'page', 'params'])
+@props(['lessons', 'sortBy', 'sortOrder', 'page', 'params', 'lessons1'])
 
 <h3 class="admin__section__title">Посещаемость</h3>
 
@@ -49,4 +49,11 @@
             @endforeach
         </tbody>
     </table>
+    <div class="desktop__paginate" style="margin-top: 10px;">
+        {{ $lessons1->paginate(20)->onEachSide(1) }}
+    </div>
+
+    <div class="mobile__paginate" style="margin-top: 10px;">
+        {{ $lessons1->simplePaginate() }}
+    </div>
 </div>
