@@ -20,7 +20,9 @@ class LessonController extends Controller
 
         $current_date = Carbon::now()->startOfDay()->timestamp;
         if ($current_date != $qr_date) {
-            abort(403);
+            return view('lesson-confirmation', [
+                'error' => 'QR-код просрочен'
+            ]);
         }
 
         if (! Auth::check()) {
@@ -39,7 +41,8 @@ class LessonController extends Controller
         return view('lesson-confirmation', [
             'employee' => $employee,
             'user' => $user,
-            'current_lesson' => $current_lesson
+            'current_lesson' => $current_lesson,
+            'error' => false
         ]);
     }
 
@@ -400,6 +403,7 @@ class LessonController extends Controller
         {
             list($startTime, $endTime) = explode(' - ', $lessonTime);
             return $currentTime >= $startTime && $currentTime <= $endTime;
+            // return true;
         }
 
         $found = false;
@@ -415,7 +419,8 @@ class LessonController extends Controller
         }
 
         if (!$found) {
-            abort(403);
+            // abort(403);
+            return false;
         }
     }
 
