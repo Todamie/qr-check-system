@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('student_id')->constrained('users')->cascadeOnDelete();
             $table->string('lesson_name')->nullable();
             $table->string('classroom')->nullable();
+            $table->string('attend_type')->nullable();
             $table->timestamps();
         });
     }

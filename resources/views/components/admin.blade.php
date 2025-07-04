@@ -10,12 +10,13 @@
                     <ul>
                         <li><a href="/admin/users">Управление пользователями</a></li>
                         <li><a href="/admin/attendance">Просмотр посещаемости</a></li>
+                        <li><a href="/employee/manual-attendance">Ручная отметка о посещаемости</a></li>
 
-                        @if (Auth::user()->employee)
+                        @if (Auth::user()->isEmployee())
                             <li><a href="/employee/attendance">Просмотр посещаемости как сотрудника</a></li>
                         @endif
 
-                        @if (Auth::user()->student)
+                        @if (Auth::user()->isStudent())
                             <li><a href="/student/attendance">Просмотр посещаемости как студента</a></li>
                         @endif
 
@@ -38,13 +39,14 @@
                     <ul class="accordion__list">
                         <li class="accordion__list__item"><a href="/admin/users">Управление пользователями</a></li>
                         <li class="accordion__list__item"><a href="/admin/attendance">Просмотр посещаемости</a></li>
+                        <li class="accordion__list__item"><a href="/employee/manual-attendance">Ручная отметка о посещаемости</a></li>
 
-                        @if (Auth::user()->employee)
+                        @if (Auth::user()->isEmployee())
                             <li class="accordion__list__item"><a href="/employee/attendance">Просмотр посещаемости как
                                     сотрудника</a></li>
                         @endif
 
-                        @if (Auth::user()->student)
+                        @if (Auth::user()->isStudent())
                             <li class="accordion__list__item"><a href="/student/attendance">Просмотр посещаемости как
                                     студента</a></li>
                         @endif

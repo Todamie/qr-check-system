@@ -4,7 +4,16 @@
 
 /* @import 'tailwindcss'; */
 
-
+body.no-scroll, html.no-scroll {
+    overflow: hidden !important;
+    overscroll-behavior: none !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    position: fixed !important;
+    touch-action: none !important;
+}
 
 :root {
     --main-color: #1e40af;
@@ -336,9 +345,13 @@ footer {
 }
 
 #qr-video {
-    object-fit: fill;
     width: 100vw;
     height: 100vh;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    margin: 0 auto;
+    background: #000;
 }
 
 .confirmation__form {
@@ -766,11 +779,9 @@ footer {
     }
 
     .scanner {
-        height: calc(100dvh - 67px - 47.9px);
-    }
-
-    #qr-video {
-        height: calc(100dvh - 67px - 47.9px);
+        height: 100vw !important;
+        min-height: 100vw !important;
+        max-height: 100vw !important;
     }
 
 }
@@ -922,10 +933,6 @@ footer {
         height: calc(100dvh - 67px - 47.9px);
     }
 
-    #qr-video {
-        height: calc(100dvh - 67px - 47.9px);
-    }
-
 }
 
 /* Medium (MD) — Планшеты */
@@ -1074,9 +1081,7 @@ html {
     height: calc(100dvh - 67px - 47.9px);
 }
 
-#qr-video {
-    height: calc(100dvh - 67px - 47.9px);
-}}
+}
 
 /* Large (LG) — Ноутбуки */
 @media (min-width: 992px) {}
@@ -1086,3 +1091,25 @@ html {
 
 /* XXL — Очень большие экраны */
 @media (min-width: 1400px) { }
+
+@media (min-width: 577px) and (max-width: 991px) {
+    .scanner {
+        height: 100vw !important;
+        min-height: 100vw !important;
+        max-height: 100vw !important;
+    }
+}
+
+.scan-region-highlight {
+    /* Квадрат по меньшей стороне видео */
+    width: min(60vw, 60vh) !important;
+    height: min(60vw, 60vh) !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) scaleX(-1) !important;
+    aspect-ratio: 1 / 1 !important;
+    box-sizing: content-box !important;
+    /* Можно добавить рамку для отладки:
+    border: 1px solid red !important;
+    */
+}

@@ -11,9 +11,7 @@
                 <button class="btn btn-primary" type="submit">Войти</button>
                 <a href="/register" style="text-decoration: underline; text-align: center;">Регистрация</a>
             </div>
-            @error('email')
-                <p class="error__text">{{ $message }}</p>
-            @enderror
+            <x-messages :success="session('success')" :error="session('error')" />
         </form>
     </div>
 </x-form-layout>

@@ -21,7 +21,7 @@
                         <li><a href="/user/{{ auth()->user()->id }}"><span><img class="menu__img" src="{{ asset('user-menu-item.svg') }}"
                                         alt=""></span>Личный кабинет</a></li>
                         @auth
-                            @if (auth()->user()->admin)
+                            @if (Auth::user()->isAdmin())
                                 <li><a href="/admin/users"><span><img class="menu__img" src="{{ asset('settings.svg') }}"
                                                 alt=""></span>Администрирование</a></li>
                                 <li><a href="/admin/attendance"><span><img class="menu__img"
@@ -29,13 +29,13 @@
                                 </li>
                             @endif
 
-                            @if (auth()->user()->employee && !(auth()->user()->admin))
+                            @if (Auth::user()->isEmployee() && !(Auth::user()->isAdmin()))
                                 <li><a href="/employee/attendance"><span><img class="menu__img"
                                                 src="{{ asset('calendar.svg') }}" alt=""></span>Посещаемость</a>
                                 </li>
                             @endif
 
-                            @if (auth()->user()->student && !(auth()->user()->admin))
+                            @if (Auth::user()->isStudent() && !(Auth::user()->isAdmin()))
                                 <li><a href="/student/attendance"><span><img class="menu__img"
                                                 src="{{ asset('calendar.svg') }}" alt=""></span>Посещаемость</a>
                                 </li>

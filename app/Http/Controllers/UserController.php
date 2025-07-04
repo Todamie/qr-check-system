@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
 use App\Models\User;
 
 
@@ -150,7 +151,12 @@ class UserController extends Controller
                 'password' => 'Невозможно обновить пароль у учетной записи SSO',
             ]);
         } else {
-            $user->update(request()->only(['first_name', 'last_name', 'email', 'student', 'employee', 'admin', 'password', 'group', 'department']));
+            $user->update(request()->only(['first_name', 'last_name', 'email', 'password', 'group', 'department']));
+            $roles = [];
+            if ($request->input('student')) $roles[] = Role::where('name', 'student')->first()->id;
+            if ($request->input('employee')) $roles[] = Role::where('name', 'employee')->first()->id;
+            if ($request->input('admin')) $roles[] = Role::where('name', 'admin')->first()->id;
+            $user->roles()->sync($roles);
         }
         return redirect('/admin/users/')->with('success', 'Пользователь обновлен!');
     }
@@ -160,21 +166,28 @@ class UserController extends Controller
         return view('admin.update-groups');
     }
 
-    // Запускается по кнопке "Обновить привязку к группам в админке"
+    // Запускается по кнопке "Обновить привязку к группам" в админке
     public function updateGroupsPost()
     {
-        $users = User::where('student', 1)
+        $users = User::with('roles')
+            ->whereHas('roles', function ($query) {
+                $query->where('name', 'student');
+            })
             ->where('type', 1)
             ->get();
 
+        $pattern = '/(?<![^\p{L}])\d+(?![^\p{L}])|\(\d+\)/u';
         foreach ($users as $user) {
             $group = $this->getLdapUserGroupStudent($user->email);
-            $user->department = explode('=', explode(",", $group[0])[2])[1];
-            $user->group = explode('=', explode(",", $group[0])[0])[1];
+            $user->department = preg_replace($pattern, '',explode('=', explode(",", $group[0])[2])[1]);
+            $user->group = preg_replace($pattern, '',explode('=', explode(",", $group[0])[0])[1]);
             $user->save();
         }
 
-        $employers = User::where('employee', 1)
+        $employers = User::with('roles')
+            ->whereHas('roles', function ($query) {
+                $query->where('name', 'employee');
+            })
             ->where('type', 1)
             ->get();
 
@@ -192,7 +205,10 @@ class UserController extends Controller
     // Используется в SSOController при входе в учетку впервые
     public function updateGroupsPostByEmail($email)
     {
-        $user = User::where('student', 1)
+        $user = User::with('roles')
+            ->whereHas('roles', function ($query) {
+                $query->where('name', 'student');
+            })
             ->where('email', $email)
             ->where('type', 1)
             ->first();
@@ -205,7 +221,10 @@ class UserController extends Controller
         }
 
 
-        $employee = User::where('employee', 1)
+        $employee = User::with('roles')
+            ->whereHas('roles', function ($query) {
+                $query->where('name', 'employee');
+            })
             ->where('email', $email)
             ->where('type', 1)
             ->first();

@@ -33,15 +33,15 @@
 
                 <p style="font-size: .9rem; font-weight: 600; margin-bottom: 1rem;">Роль:</p>
                 <ul class="role__list" style="display: flex; gap: .5rem; flex-wrap: wrap;">
-                    @if (auth()->user()->employee)
+                    @if (auth()->user()->isEmployee())
                         <li style="background-color: #2b67ea; color: #fff; padding: .7rem 1rem;
                             border-radius: .5rem;">Сотрудник</li>
                     @endif
-                    @if (auth()->user()->student)
+                    @if (auth()->user()->isStudent())
                         <li style="background-color:rgb(12, 148, 57); color: #fff; padding: .7rem 1rem;
                                 border-radius: .5rem;">Студент</li>
                     @endif
-                    @if (auth()->user()->admin)
+                    @if (auth()->user()->isAdmin())
                         <li style="background-color:rgb(0, 0, 0); color: #fff; padding: .7rem 1rem;
                             border-radius: .5rem;">Администратор</li>
                     @endif
@@ -82,15 +82,15 @@
 
                 <p style="font-size: .9rem; font-weight: 600; margin-bottom: 1rem;">Роль:</p>
                 <ul class="role__list" style="display: flex; gap: .5rem; flex-wrap: wrap;">
-                    @if (auth()->user()->employee)
+                    @if (Auth::user()->isEmployee())
                         <li style="background-color: #2b67ea; color: #fff; padding: .7rem 1rem;
                             border-radius: .5rem;">Сотрудник</li>
                     @endif
-                    @if (auth()->user()->student)
+                    @if (Auth::user()->isStudent())
                         <li style="background-color:rgb(12, 148, 57); color: #fff; padding: .7rem 1rem;
                                 border-radius: .5rem;">Студент</li>
                     @endif
-                    @if (auth()->user()->admin)
+                    @if (Auth::user()->isAdmin())
                         <li style="background-color:rgb(0, 0, 0); color: #fff; padding: .7rem 1rem;
                             border-radius: .5rem;">Администратор</li>
                     @endif

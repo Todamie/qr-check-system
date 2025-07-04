@@ -2,6 +2,7 @@
 
 use Laravel\Socialite\Facades\Socialite;
 use App\Http\Controllers\LessonController;
+use App\Http\Controllers\ManualAttendanceController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\SSOController;
 use App\Http\Controllers\UserController;
@@ -16,14 +17,14 @@ Route::get("/", function () {
         return redirect("/login");
     }
 
-    if (Auth::user()->employee == 1) {
+    if (Auth::user()->roles()->where('name', 'employee')->exists()) {
         return view("qr", [
             'user' => Auth::user(),
             'date' => Carbon::now()->startOfDay()->timestamp
         ]);
     }
 
-    if (Auth::user()->student == 1) {
+    if (Auth::user()->roles()->where('name', 'student')->exists()) {
         return view("scanner");
     }
 });
@@ -61,7 +62,12 @@ Route::post('/lesson/mark/{teacherid}', [LessonController::class, 'store'])->mid
 // Отображение пользователя
 Route::get('/user/{id}', [UserController::class,  'show'])->middleware('auth');
 
+
 // АДМИНКА - РАБОТА С ПОЛЬЗОВАТЕЛЯМИ
+Route::get('/admin', function(){
+    return redirect('/admin/users');
+})->middleware('auth', 'admin');
+
 Route::get('/admin/users', [UserController::class, 'index'])->middleware('auth', 'admin');
 Route::get('/admin/attendance', [LessonController::class, 'index'])->middleware('auth', 'admin');
 
@@ -88,8 +94,13 @@ Route::get('/admin/update-groups', [UserController::class, 'updateGroups'])->mid
 
 Route::post('/admin/update-groups', [UserController::class, 'updateGroupsPost'])->middleware('auth', 'admin');
 
+
 // ДЛЯ СОТРУДНИКОВ
 Route::get('/employee/attendance', [LessonController::class, 'index_employee'])->middleware('auth');
 
+Route::get('/employee/manual-attendance', [ManualAttendanceController::class, 'manual_attend'])->middleware('auth');
+Route::post('/employee/manual-attendance', [ManualAttendanceController::class, 'manual_attend_post'])->middleware('auth');
+Route::get('/manual-attendance/get-lessons/{student_id}', [ManualAttendanceController::class, 'getLessonsByStudent']);
+
 // ДЛЯ СТУДЕНТОВ
-Route::get('/student/attendance', [LessonController::class, 'index_student'])->middleware('auth');
+Route::get('/student/attendance', [LessonController::class, 'index_student'])->middleware('auth', 'student');

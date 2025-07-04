@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
 use App\Models\User;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
@@ -45,22 +46,18 @@ class SSOController extends Controller
             // Ищем пользователя в базе данных или создаем нового
             // проверяем кто заходит, студент или преподаватель
 
-            if (str_contains($keycloakUser->getEmail(), '@tyuiu.ru')) {
-                $user = User::firstOrCreate([
-                    'first_name' => $kcuser_first_name,
-                    'last_name' => $kcuser_last_name,
-                    'email' => $keycloakUser->getEmail(),
-                    'type' => true,
-                    'employee' => 1
-                ]);
-            } else {
-                $user = User::firstOrCreate([
-                    'first_name' => $kcuser_first_name,
-                    'last_name' => $kcuser_last_name,
-                    'email' => $keycloakUser->getEmail(),
-                    'type' => true,
-                    'student' => 1
-                ]);
+            $user = User::firstOrCreate([
+                'first_name' => $kcuser_first_name,
+                'last_name' => $kcuser_last_name,
+                'email' => $keycloakUser->getEmail(),
+                'type' => true,
+            ]);
+
+            $roleName = str_contains($keycloakUser->getEmail(), '@tyuiu.ru') ? 'employee' : 'student';
+            $role = Role::where('name', $roleName)->first();
+
+            if ($role && !$user->roles->contains($role->id)) {
+                $user->roles()->attach($role->id);
             }
 
             // Логиним пользователя в Laravel
@@ -80,7 +77,7 @@ class SSOController extends Controller
             // Перенаправляем на /
             return redirect('/');
         } catch (\Exception $e) {
-            return redirect('/')->with('error', 'Ошибка авторизации: ' . $e->getMessage());
+            return redirect('/login')->with('error', 'Ошибка авторизации: ' . $e->getMessage());
         }
     }
 

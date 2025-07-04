@@ -1,4 +1,4 @@
-<x-layout>
+<x-layout :bodyClass="'no-scroll'">
     <div class="scanner">
         <video id="qr-video"></video>
         <script type="module">

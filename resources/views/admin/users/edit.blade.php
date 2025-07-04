@@ -48,19 +48,19 @@
                 <li>
                     <input type="hidden" name="employee" value="0">
                     <input type="checkbox" name="employee" id="employee" value="1"
-                        {{ $user->employee ? 'checked' : '' }}>
+                        {{ $user->isEmployee() ? 'checked' : '' }}>
                     <label for="employee">Сотрудник</label>
                 </li>
                 <li>
                     <input type="hidden" name="student" value="0">
                     <input type="checkbox" name="student" id="student" value="1"
-                        {{ $user->student ? 'checked' : '' }}>
+                        {{ $user->isStudent() ? 'checked' : '' }}>
                     <label for="student">Студент</label>
                 </li>
                 <li>
                     <input type="hidden" name="admin" value="0">
                     <input type="checkbox" name="admin" id="admin" value="1"
-                        {{ $user->admin ? 'checked' : '' }}>
+                        {{ $user->isAdmin() ? 'checked' : '' }}>
                     <label for="admin">Администратор</label>
                 </li>
             </ul>

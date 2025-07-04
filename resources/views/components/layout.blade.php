@@ -9,7 +9,7 @@
     @vite(['resources/css/app.css', 'resources/css/reset.css', 'resources/js/app.js'])
 </head>
 
-<body class="layout">
+<body class="layout {{ $bodyClass ?? '' }}">
     <header>
         <x-dashboard></x-dashboard>
     </header>

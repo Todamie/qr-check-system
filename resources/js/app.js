@@ -57,3 +57,42 @@ document.addEventListener("DOMContentLoaded", function () {
     })
 
 });
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    const studentSelect = document.querySelector('select[name="student_id"]');
+    const lessonSelect = document.querySelector('select[name="lesson_name"]');
+    const lessonSelectWrapper = lessonSelect.closest('div'); // обёртка для скрытия/показа
+
+    function loadLessonsForStudent(studentId) {
+        if (!studentId) {
+            lessonSelectWrapper.style.display = 'none';
+            lessonSelect.innerHTML = '';
+            return;
+        }
+        fetch(`/manual-attendance/get-lessons/${studentId}`)
+            .then(response => response.json())
+            .then(data => {
+                lessonSelect.innerHTML = '';
+                data.lessons.forEach(lesson => {
+                    const option = document.createElement('option');
+                    option.value = lesson;
+                    option.textContent = lesson;
+                    lessonSelect.appendChild(option);
+                });
+                lessonSelectWrapper.style.display = 'flex';
+            });
+    }
+
+    // Скрываем предметы до выбора студента
+    lessonSelectWrapper.style.display = 'none';
+
+    // Если студент выбран по умолчанию — сразу подгружаем предметы
+    if (studentSelect.value) {
+        loadLessonsForStudent(studentSelect.value);
+    }
+
+    studentSelect.addEventListener('change', function() {
+        loadLessonsForStudent(this.value);
+    });
+});

@@ -19,6 +19,44 @@ class User extends Authenticatable
      */
     protected $guarded = [];
 
+
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class);
+    }
+
+    /**
+     * Check if user has admin role
+     */
+    public function isAdmin()
+    {
+        return $this->roles()->where('name', 'admin')->exists();
+    }
+
+    /**
+     * Check if user has employee role
+     */
+    public function isEmployee()
+    {
+        return $this->roles()->where('name', 'employee')->exists();
+    }
+
+    /**
+     * Check if user has student role
+     */
+    public function isStudent()
+    {
+        return $this->roles()->where('name', 'student')->exists();
+    }
+
+    /**
+     * Check if user has specific role
+     */
+    public function hasRole($roleName)
+    {
+        return $this->roles()->where('name', $roleName)->exists();
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *

@@ -19,9 +19,9 @@ return new class extends Migration
             $table->boolean('type')->default(false);
             $table->string('group')->nullable();
             $table->string('department')->nullable();
-            $table->boolean('employee')->default(false)->nullable();
-            $table->boolean('student')->default(false)->nullable();
-            $table->boolean('admin')->default(false)->nullable();
+            // $table->boolean('employee')->default(false)->nullable();
+            // $table->boolean('student')->default(false)->nullable();
+            // $table->boolean('admin')->default(false)->nullable();
             $table->string('password')->nullable();
             $table->timestamps();
             $table->timestamp('last_login')->nullable();

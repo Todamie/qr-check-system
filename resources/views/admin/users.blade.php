@@ -60,9 +60,9 @@
                             <th>Локальная</th>
                         @endif
 
-                        @if ($user->student)
+                        @if ($user->isStudent())
                             <th>Студент</th>
-                        @elseif ($user->employee)
+                        @elseif ($user->isEmployee())
                             <th>Сотрудник</th>
                         @else
                             <th>Не назначена</th>
